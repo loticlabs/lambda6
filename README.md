@@ -1,5 +1,5 @@
 # lambda6
-[![Build Status](https://travis-ci.org/nombers/lambda6.svg)](https://travis-ci.org/nombers/lambda6)
+[![Build Status](https://travis-ci.org/nombers/lambda6.svg)](https://travis-ci.org/nombers/lambda6) [![Test Coverage](https://codeclimate.com/github/nombers/lambda6/badges/coverage.svg)](https://codeclimate.com/github/nombers/lambda6/coverage)
 
 A simple and opinionated handler architecture for AWS Lambda using ES6. Lambda6 provides a base class `Handler` to be used for dispatching AWS Lambda requests to methods within the subclass.
 
