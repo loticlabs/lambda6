@@ -4,6 +4,7 @@ const gulp = require('gulp');
 // Include plugins
 const babel = require('gulp-babel'),
       mocha = require('gulp-mocha'),
+      esdoc = require('gulp-esdoc'),
   babelCore = require('babel-core/register'),
 runSequence = require('run-sequence'),
     install = require('gulp-install'),
@@ -17,7 +18,7 @@ gulp.task('clean', () => {
 
 // Babel Task
 gulp.task('babel', () => {
-  return gulp.src('./**/*.es6')
+  return gulp.src('.')
     .pipe(babel())
     .pipe(gulp.dest('dist'));
 });
@@ -30,6 +31,15 @@ gulp.task('test', () => {
         js: babelCore
       }
     }));
+});
+
+// Docs Task
+gulp.task('docs', () => {
+  gulp.src('.')
+  .pipe(esdoc({
+    includes: ['\\.es6$'],
+    destination: './docs'
+  }));
 });
 
 // Install npm packages to dist
