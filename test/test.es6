@@ -6,6 +6,16 @@ should();
 import { Handler } from '../index';
 
 describe('Handler', () => {
+  describe('.event', () => {
+    it('should be read-only', () => {
+      expect(() => new Handler({}, {}).event = {}).to.throw(TypeError);
+    });
+  });
+  describe('.context', () => {
+    it('should be read-only', () => {
+      expect(() => new Handler({}, {}).context = {}).to.throw(TypeError);
+    });
+  });
   describe('.handle()', () => {
     it('should throw exception for null event', () => {
       expect(() => Handler.handle(null, null))

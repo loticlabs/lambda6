@@ -1,7 +1,25 @@
 // Base class for Lambda handler methods
 export class Handler {
 
+  /**
+   * Creates a new instance of the base handler class. Subclasses should
+   * override this if they wish to store objects available to the dispatch
+   * methods.
+   * @param {Object} event - the AWS Lambda event
+   * @param {Object} context - the AWS Lambda context
+   */
   constructor(event, context) {
+
+    // Validate event
+    if (!(event instanceof Object)) {
+      throw new TypeError(`event is required and must be an object`);
+    }
+
+    // Validate context
+    if (!(context instanceof Object)) {
+      throw new TypeError(`context is required and must be an object`);
+    }
+
     // Create read-only properties
     Object.defineProperties(this, {
       'event': {
@@ -22,66 +40,63 @@ export class Handler {
    */
   static handle(event, context) {
 
-    // Validate event
-    if (!(event instanceof Object)) {
-      throw new TypeError(`event is required and must be an object`);
-    }
-
-    // Validate context
-    if (!(context instanceof Object)) {
-      throw new TypeError(`context is required and must be an object`);
-    }
-
-    // Check event payload first
-    var operation, fn;
-    if (!(operation = event.operation) || (typeof operation !== 'string')) {
-      throw new Error(`Operation name argument missing or invalid.`);
-    }
-
     // Check `this` value
     if (!this || typeof this !== 'function') {
-      throw new Error(`handle called with invalid "this" value.`);
+      throw new Error(`handle called with invalid "this" value`);
     }
 
     // Create implementation and define function reference
-    var impl, fn;
-    try {
-      impl = new this(event, context);
-    } catch (e) {
-      throw new Error(`Unable to create new instance of "${this.name}: ${e}"`)
+    const impl = new this(event, context);
+
+    // Dispatch operation name and payload
+    return impl.dispatch(event.operation, event.payload || {});
+  }
+
+  /**
+   * Performs the dispatch of the operation and the payload to the correct
+   * method handler in the subclass.
+   * @param {String} operation - the name of the operation to Performs
+   * @param {Object} payload - the payload that is passed as an argument to the
+   * method being dispatched.
+   */
+  dispatch(operation, payload) {
+
+    // Validate operation
+    if (typeof operation !== 'string') {
+      throw new TypeError(`event.operation is required and must be a string`);
     }
 
-    // Check if implementation is defined
-    if (!impl) {
-      throw new Error(`Implementation not defined`);
+    // Validate payload
+    if (!payload instanceof Object) {
+      throw new TypeError(`event.payload is required and must be an object`);
     }
 
     // Event
-    if (!impl.event) {
-      throw new Error(`this.event is missing`);
+    if (!(this.event instanceof Object)) {
+      throw new Error(`this.event is missing or is not an object`);
     }
 
     // Context
-    if (!impl.context) {
-      throw new Error(`this.context is missing`);
+    if (!(this.context instanceof Object)) {
+      throw new Error(`this.context is missing or is not an object`);
     }
 
     // Get operation handler function
+    var fn;
     if (!(fn = impl[operation])) {
       throw new Error(`Handler "${operation}" not found`);
     }
 
     // Validate operation handler function
-    if (typeof fn !== 'function') {
-      throw new Error(`Handler "${operation}" not a function`);
+    if (!(fn instanceof Function)) {
+      throw new TypeError(`handler "${operation}" must be a function`);
     }
 
     try {
       // Call the function with the payload
-      const payload = event.payload || {};
-      fn.call(impl, payload);
+      return fn.call(impl, payload);
     } catch (e) {
-      throw new Error(`Unable to execute ${this.name}.handle(): ${e}`);
+      throw new Error(`Unable to execute ${this.name}.dispatch(): ${e.message}`);
     }
   }
 }
