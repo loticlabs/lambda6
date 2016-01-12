@@ -22,6 +22,10 @@ export class Handler {
    */
   static handle(event, context) {
 
+    // Validate event and context
+    if (!event) throw new Error(`event required`);
+    if (!context) throw new Error(`context required`);
+
     // Check event payload first
     var operation, fn;
     if (!(operation = event.operation) || (typeof operation !== 'string')) {

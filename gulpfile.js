@@ -7,6 +7,8 @@ const babel = require('gulp-babel'),
       esdoc = require('gulp-esdoc'),
   babelCore = require('babel-core/register'),
 runSequence = require('run-sequence'),
+   istanbul = require('gulp-istanbul'),
+    isparta = require('isparta'),
     install = require('gulp-install'),
      rename = require('gulp-rename'),
         del = require('del');
@@ -23,14 +25,23 @@ gulp.task('babel', () => {
     .pipe(gulp.dest('dist'));
 });
 
+gulp.task('pre-test', () => {
+  return gulp.src(['./*.es6'])
+    .pipe(istanbul({
+      instrumenter: isparta.Instrumenter,
+      includeUntested: true
+    }))
+    .pipe(istanbul.hookRequire());
+});
+
 // Test Task
-gulp.task('test', () => {
+gulp.task('test', ['pre-test'], () => {
   return gulp.src(['test/**/*.es6'])
-    .pipe(mocha({
-      compilers: {
-        js: babelCore
-      }
-    }));
+    .pipe(mocha({ reporter: 'spec' }))
+    .pipe(istanbul.writeReports({
+      reporters: ['text', 'text-summary', 'html', 'lcov']
+    }))
+    .pipe(istanbul.enforceThresholds({ thresholds: { global: 0 } }));
 });
 
 // Docs Task

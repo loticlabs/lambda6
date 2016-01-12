@@ -1,7 +1,15 @@
 language: node_js
 node_js:
-  - "4.1"
+- '4.1'
 before_install:
-  - npm install -g gulp
+- npm install -g gulp
 script:
-  - gulp
+- gulp
+deploy:
+  provider: npm
+  email: mmarshall@nombers.io
+  api_key:
+    secure: LW+Emt+HZX2uHFu+b0CimW6+MmpZ78wncb2z1t7agPvMBTh2FuN1Up83n17ZKcwhHSzhoh9HNNEsjjOgls9VocXEwHJqkjGwFeZoFDX+f1ErHwCn9dN/lOd1kAy7zPFPBiL7UEj4qo6wnzIg/yrftb2Ys5mdp1n3E7cqolcB6BVQfAYjBey5DRN3IRLAbFMGWjoAKWrFPIJj7EQnxUE6HObAWydhwYTX2kac84wUFIJOU6Mk9g9NKfxj4xgGproom/vNn0DbcuuAQ0gQhO+vOG90zo+4M32EnFB6hykc35w00C6H9S5LSC/zRRaygzTuHZPyCOXOnGSThEJg+wu1ldZ9jjIaXOqu/OTMFDgBKrnfa6ocY4TQbpmT2vEqCbON0VCijBZ3IDHXsMi0ZJ7p7LPEJO7Pd1aBal7zNHEspw68KytsuQFnIS3TAyC38enV7P957f+wCx7qrnufAV0sSqCDE4S0oBAlTqzbqDZCo5u7ak771Prrs8sciF8GJ5I21PIhcoaycIlisjemdNp8aOMUek5DKcHoubExjWEdYzrCww6GKfGJVU8S1sSglXiR7iC4SwmlOz6PTrviH0zJPkGYJyiNciAO/lCR5umqBfBYMc5ZXMoyTygt1Q/SRYCYYETgavFzq7PjcHxDolZkWGxJ9PkAsolNrEpxn1UfLSQ=
+  on:
+    tags: true
+    repo: nombers/lambda6
