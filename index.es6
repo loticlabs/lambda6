@@ -42,7 +42,7 @@ export class Handler {
 
     // Check `this` value
     if (!this || typeof this !== 'function') {
-      throw new Error(`handle called with invalid "this" value`);
+      throw new Error(`handle() called with invalid "this" value`);
     }
 
     // Create implementation and define function reference
@@ -61,14 +61,17 @@ export class Handler {
    */
   dispatch(operation, payload) {
 
-    // Validate operation
-    if (typeof operation !== 'string') {
-      throw new TypeError(`event.operation is required and must be a string`);
+    // Check `this` value
+    if (!(this instanceof Object)) {
+      throw new Error(`dispatch() called with invalid "this" value`);
     }
+
+    // Get operation handler function
+    const fn = this.resolveOperation(operation);
 
     // Validate payload
     if (!payload instanceof Object) {
-      throw new TypeError(`event.payload is required and must be an object`);
+      throw new TypeError(`payload is required and must be an object`);
     }
 
     // Event
@@ -81,10 +84,35 @@ export class Handler {
       throw new Error(`this.context is missing or is not an object`);
     }
 
+    try {
+      // Call the function with the payload
+      return fn.call(impl, payload);
+    } catch (e) {
+      throw new Error(`Unable to execute ${this.name}.dispatch(): ${e.message}`);
+    }
+  }
+
+  /**
+   * Resolves an operation name to an instance method of a derived class.
+   * @param {String} operation - the name of the operation to resolve
+   * @return {Function} a function that can be called with the event payload.
+   */
+  resolveOperation(operation) {
+
+    // Check `this` value
+    if (!(this instanceof Object)) {
+      throw new Error(`resolveOperation() called with invalid "this" value`);
+    }
+
+    // Validate operation
+    if (typeof operation !== 'string') {
+      throw new TypeError(`event.operation is required and must be a string`);
+    }
+
     // Get operation handler function
     var fn;
-    if (!(fn = impl[operation])) {
-      throw new Error(`Handler "${operation}" not found`);
+    if (!(fn = this[operation])) {
+      throw new Error(`handler "${operation}" not found`);
     }
 
     // Validate operation handler function
@@ -92,11 +120,6 @@ export class Handler {
       throw new TypeError(`handler "${operation}" must be a function`);
     }
 
-    try {
-      // Call the function with the payload
-      return fn.call(impl, payload);
-    } catch (e) {
-      throw new Error(`Unable to execute ${this.name}.dispatch(): ${e.message}`);
-    }
+    return fn;
   }
 }

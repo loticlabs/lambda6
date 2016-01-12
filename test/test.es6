@@ -42,4 +42,22 @@ describe('Handler', () => {
         .to.throw(TypeError, 'context is required and must be an object');
     });
   });
+  describe('#resolveOperation()', () => {
+    class TestClass extends Handler {
+      notOperation = true;
+    }
+    const h = new TestClass({}, {});
+    it('should throw exception for null operation', () => {
+      const f = TestClass.prototype.resolveOperation.bind(h, null);
+      expect(f).to.throw(TypeError, 'operation is required and must be a string');
+    });
+    it('should throw exception for operation not found', () => {
+      const f = TestClass.prototype.resolveOperation.bind(h, 'notFound');
+      expect(f).to.throw(Error, 'handler "notFound" not found');
+    });
+    it('should throw exception for operation not a function', () => {
+      const f = TestClass.prototype.resolveOperation.bind(h, 'notOperation');
+      expect(f).to.throw(TypeError, 'handler "notOperation" must be a function');
+    });
+  });
 });
