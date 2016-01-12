@@ -1,5 +1,5 @@
 {
-  "name": "nombers-lambda",
+  "name": "lambda6",
   "version": "1.0.0",
   "description": "AWS Lambda Functions for Nombers Auth",
   "main": "index.js",
