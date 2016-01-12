@@ -41,6 +41,11 @@ export class Handler {
       throw new Error(`Unable to create new instance of "${this.name}: ${e}"`)
     }
 
+    // Check if implementation is defined
+    if (!impl) {
+      throw new Error(`Implementation not defined`);
+    }
+
     // Event
     if (!impl.event) {
       throw new Error(`this.event is missing`);
@@ -49,11 +54,6 @@ export class Handler {
     // Context
     if (!impl.context) {
       throw new Error(`this.context is missing`);
-    }
-
-    // Check if implementation is defined
-    if (!impl) {
-      throw new Error(`Implementation not defined`);
     }
 
     // Get operation handler function
