@@ -1,6 +1,8 @@
 // Base class for Lambda handler methods
 export class Handler {
 
+  name = 'Handler';
+
   /**
    * Creates a new instance of the base handler class. Subclasses should
    * override this if they wish to store objects available to the dispatch
@@ -106,14 +108,16 @@ export class Handler {
 
     // Validate operation
     if (typeof operation !== 'string') {
-      throw new TypeError(`event.operation is required and must be a string`);
+      throw new TypeError(`operation is required and must be a string`);
     }
 
-    // Get operation handler function
-    var fn;
-    if (!(fn = this[operation])) {
+    // Checks operation handler function
+    if (!this.hasOwnProperty(operation)) {
       throw new Error(`handler "${operation}" not found`);
     }
+
+    // Get function
+    const fn = this[operation];
 
     // Validate operation handler function
     if (!(fn instanceof Function)) {
