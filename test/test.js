@@ -3,7 +3,7 @@ import { should, expect, assert } from 'chai';
 should();
 
 // Module to test
-import { Handler } from '../index';
+import { Handler } from '../src/index';
 
 describe('Handler', () => {
   describe('.event', () => {

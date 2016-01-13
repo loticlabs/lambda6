@@ -1,4 +1,5 @@
 {
   "presets": ["es2015", "stage-1"],
-  "plugins": ["transform-class-properties", "transform-decorators-legacy", "proxy"]
+  "plugins": ["transform-class-properties", "transform-decorators-legacy", "proxy"],
+  "sourceMap": "both"
 }
