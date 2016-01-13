@@ -1,0 +1,22 @@
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - javascript
+  eslint:
+    enabled: true
+  fixme:
+    enabled: true
+ratings:
+  paths:
+  - "**.inc"
+  - "**.js"
+  - "**.jsx"
+  - "**.es6"
+exclude_paths:
+- "gulpfile.js"
+- "LICENSE"
+- "README.md"
+- "package.json"
+- test/**/*
