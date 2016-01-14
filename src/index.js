@@ -66,7 +66,8 @@ export class Handler {
       throw new Error(`dispatch() called with invalid "this" value`);
     }
 
-    // Get operation handler function
+    // Get class name and operation handler function
+    const clazz = this.constructor.name;
     const fn = this.resolveOperation(operation);
 
     // Validate payload
@@ -88,7 +89,7 @@ export class Handler {
       // Call the function with the payload
       return fn.call(this, payload);
     } catch (e) {
-      throw new Error(`Unable to execute ${this.name}.dispatch(): ${e.message}`);
+      throw new Error(`error invoking ${clazz}.${fn.name}: ${e.message}`);
     }
   }
 

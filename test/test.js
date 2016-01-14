@@ -19,6 +19,10 @@ describe('Handler', () => {
     validOperation(payload) {
       return this.context.succeed(true);
     }
+    thrower(payload) {
+      const { message } = payload;
+      throw new Error(message || 'unknown');
+    }
   }
 
   // Instance of TestClass
@@ -93,7 +97,7 @@ describe('Handler', () => {
     it('should throw exception for undefined context', () => {
       handle({}, undefined).should.throw(TypeError, missing.context);
     });
-    it('should throw exception for non-object event', () => {
+    it('should throw exception for non-object context', () => {
       handle({}, 1).should.throw(TypeError, missing.context);
     });
     it('should return value from dispatched function', () => {
@@ -110,6 +114,16 @@ describe('Handler', () => {
         }
       }
       expect(TestClass.handle(event, new Context())).to.equal(true);
+    });
+    it('should catch error from dispatched function', () => {
+      const event = {
+        operation: 'thrower',
+        payload: {
+          message: 'intentional error'
+        }
+      };
+      TestClass.handle.bind(TestClass, event, {}).should.throw(
+        Error, 'error invoking TestClass.thrower: intentional error');
     });
   });
   describe('#dispatch()', () => {
@@ -134,12 +148,24 @@ describe('Handler', () => {
     it('should throw exception for non-object this.event value', () => {
       const _this = {
         resolveOperation: h.resolveOperation,
-        validOperation: function(payoload) {
-          // no-op
-        }
+        validOperation: function(payoload) { }
       };
       Handler.prototype.dispatch.bind(_this, 'validOperation', {}).should.throw(
         Error, 'this.event is missing or is not an object');
+    });
+    it('should throw exception for non-object this.context value', () => {
+      const _this = {
+        event: {
+          operation: 'validOperation',
+          payload: {
+            name: 'Mr. Incredible'
+          }
+        },
+        resolveOperation: h.resolveOperation,
+        validOperation: function(payoload) { }
+      };
+      Handler.prototype.dispatch.bind(_this, 'validOperation', {}).should.throw(
+        Error, 'this.context is missing or is not an object');
     });
   });
   describe('#resolveOperation()', () => {
