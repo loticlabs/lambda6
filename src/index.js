@@ -70,7 +70,7 @@ export class Handler {
     const fn = this.resolveOperation(operation);
 
     // Validate payload
-    if (!payload instanceof Object) {
+    if (!(payload instanceof Object)) {
       throw new TypeError(`payload is required and must be an object`);
     }
 
