@@ -7,7 +7,7 @@ A simple and opinionated handler architecture for AWS Lambda using ES6. Lambda6 
 
 ## Installing
 
-`npm install`
+`npm install --save lambda6`
 
 ## Using it in your project
 
