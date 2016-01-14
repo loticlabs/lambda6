@@ -17,7 +17,7 @@ describe('Handler', () => {
   class TestClass extends Handler {
     notOperation = true;
     validOperation(payload) {
-      this.context.succeed(true);
+      return this.context.succeed(true);
     }
   }
 
@@ -51,6 +51,9 @@ describe('Handler', () => {
     });
     it('should throw exception for non-object event', () => {
       constructor({}, 1).should.throw(TypeError, missing.context);
+    });
+    it('should not throw exception for correct parameters', () => {
+      expect(new Handler({}, {})).to.be.an('object');
     });
   });
   describe('.event', () => {
@@ -92,6 +95,21 @@ describe('Handler', () => {
     });
     it('should throw exception for non-object event', () => {
       handle({}, 1).should.throw(TypeError, missing.context);
+    });
+    it('should return value from dispatched function', () => {
+      const event = {
+        operation: 'validOperation',
+        payload: {
+          name: 'Mr. Incredible'
+        }
+      };
+      class Context {
+        succeed(val) {
+          this.value = val;
+          return val;
+        }
+      }
+      expect(TestClass.handle(event, new Context())).to.equal(true);
     });
   });
   describe('#dispatch()', () => {

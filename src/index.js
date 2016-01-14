@@ -86,7 +86,7 @@ export class Handler {
 
     try {
       // Call the function with the payload
-      return fn.call(impl, payload);
+      return fn.call(this, payload);
     } catch (e) {
       throw new Error(`Unable to execute ${this.name}.dispatch(): ${e.message}`);
     }
