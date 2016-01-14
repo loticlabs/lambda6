@@ -13,9 +13,8 @@ engines:
 ratings:
   paths:
   - "**.js"
-  - "**.es6"
 exclude_paths:
-- "gulpfile.js"
+- "gulpfile.babel.js"
 - "LICENSE"
 - "README.md"
 - "package.json"
