@@ -6,6 +6,43 @@ should();
 import { Handler } from '../src/index';
 
 describe('Handler', () => {
+
+  // Simple proxy for error messages
+  const missing = new Proxy({}, {
+    get: function(proxy, name) {
+      return `${name} is required and must be an object`
+    }
+  });
+
+  describe('constructor', () => {
+
+    // Bind to Handler.constructor()
+    function constructor(event, context) {
+      return () => {
+        return new Handler(event, context);
+      }
+    }
+
+    // TODO: Create shared behaviors
+    it('should throw exception for null event', () => {
+      constructor(null, null).should.throw(TypeError, missing.event);
+    });
+    it('should throw exception for undefined event', () => {
+      constructor(undefined, null).should.throw(TypeError, missing.event);
+    });
+    it('should throw exception for non-object event', () => {
+      constructor(1, null).should.throw(TypeError, missing.event);
+    });
+    it('should throw exception for null context', () => {
+      constructor({}, null).should.throw(TypeError, missing.context);
+    });
+    it('should throw exception for undefined context', () => {
+      constructor({}, undefined).should.throw(TypeError, missing.context);
+    });
+    it('should throw exception for non-object event', () => {
+      constructor({}, 1).should.throw(TypeError, missing.context);
+    });
+  });
   describe('.event', () => {
     it('should be read-only', () => {
       expect(() => new Handler({}, {}).event = {}).to.throw(TypeError);
@@ -23,13 +60,7 @@ describe('Handler', () => {
       return Handler.handle.bind(Handler, event, context);
     }
 
-    // Simple proxy for error messages
-    const missing = new Proxy({}, {
-      get: function(proxy, name) {
-        return `${name} is required and must be an object`
-      }
-    });
-
+    // TODO: Create shared behaviors
     it('should throw exception for null event', () => {
       handle(null, null).should.throw(TypeError, missing.event);
     });
