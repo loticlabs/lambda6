@@ -20,7 +20,7 @@ gulp.task('clean', () => {
 
 // Babel Task
 gulp.task('babel', () => {
-  return gulp.src('./src')
+  return gulp.src('./src/**/*.js')
     .pipe(babel())
     .pipe(gulp.dest('dist'));
 });

@@ -7,12 +7,11 @@ import { Handler } from '../src/index';
 
 describe('Handler', () => {
 
-  // Simple proxy for error messages
-  const missing = new Proxy({}, {
-    get: function(proxy, name) {
-      return `${name} is required and must be an object`
-    }
-  });
+  // Error messages for missing arguments
+  const missing = {
+    event: 'event is required and must be an object',
+    context: 'context is required and must be an object'
+  };
 
   describe('constructor', () => {
 
@@ -81,28 +80,42 @@ describe('Handler', () => {
     });
   });
   describe('#resolveOperation()', () => {
+
+    // A test handler
     class TestClass extends Handler {
-      name = 'TestClass';
       notOperation = true;
+      validOperation(payload) {
+        this.context.succeed(true);
+      }
     }
+
+    // Instance of TestClass
     const h = new TestClass({}, {});
 
     // Bind to Handler.resolveOperation()
-    function resolveOperation(operation) {
-      return Handler.resolveOperation.bind(Handler, operation);
+    function resolveOperation(_this, operation) {
+      return Handler.prototype.resolveOperation.bind(_this, operation);
     }
 
+    it('should throw exception for invalid "this" value', () => {
+      resolveOperation(null, 'operation')
+      .should.throw(Error, 'resolveOperation() called with invalid "this" value');
+    });
     it('should throw exception for null operation', () => {
-      const f = TestClass.prototype.resolveOperation.bind(h, null);
-      expect(f).to.throw(TypeError, 'operation is required and must be a string');
+      resolveOperation(h, null)
+      .should.throw(TypeError, 'operation is required and must be a string');
     });
     it('should throw exception for operation not found', () => {
-      const f = h.resolveOperation.bind(h, 'notFound');
-      expect(f).to.throw(Error, 'handler "notFound" not found');
+      resolveOperation(h, 'notFound')
+      .should.throw(Error, 'handler "notFound" not found');
     });
     it('should throw exception for operation not a function', () => {
-      const f = h.resolveOperation.bind(h, 'notOperation');
-      expect(f).to.throw(TypeError, 'handler "notOperation" must be a function');
+      resolveOperation(h, 'notOperation')
+      .should.throw(TypeError, 'handler "notOperation" must be a function');
+    });
+    it('should return a function for a valid operation name', () => {
+      h.validOperation.should.be.a('function');
+      expect(h['validOperation']).to.be.a('function');
     });
   });
 });

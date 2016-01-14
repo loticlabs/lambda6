@@ -109,13 +109,13 @@ export class Handler {
       throw new TypeError(`operation is required and must be a string`);
     }
 
-    // Checks operation handler function
-    if (!this.hasOwnProperty(operation)) {
-      throw new Error(`handler "${operation}" not found`);
-    }
-
     // Get function
     const fn = this[operation];
+
+    // Checks operation handler function
+    if (fn === undefined) {
+      throw new Error(`handler "${operation}" not found`);
+    }
 
     // Validate operation handler function
     if (!(fn instanceof Function)) {
