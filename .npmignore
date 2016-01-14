@@ -1,0 +1,7 @@
+.*
+gulpfile.babel.js
+node_modules
+coverage
+docs
+test
+src

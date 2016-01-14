@@ -9,20 +9,19 @@ import babelCore from 'babel-core/register';
 import runSequence from 'run-sequence';
 import istanbul from 'gulp-istanbul';
 import * as isparta from 'isparta';
-import install from 'gulp-install';
 import rename from 'gulp-rename';
 import del from 'del';
 
 // Clean task
 gulp.task('clean', () => {
-  return del(['dist', 'docs', 'coverage']);
+  return del(['lib', 'docs', 'coverage']);
 });
 
 // Babel Task
 gulp.task('babel', () => {
   return gulp.src('./src/**/*.js')
     .pipe(babel())
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('lib'));
 });
 
 // Istanbul Task
@@ -41,8 +40,8 @@ gulp.task('test', ['istanbul'], () => {
     .pipe(mocha())
     .pipe(istanbul.writeReports({
       reporters: ['text', 'text-summary', 'html', 'lcov']
-    }));
-    // .pipe(istanbul.enforceThresholds({ thresholds: { global: 0 } }));
+    }))
+    .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }));
 });
 
 // Docs Task
@@ -54,13 +53,6 @@ gulp.task('docs', () => {
   }));
 });
 
-// Install npm packages to dist
-gulp.task('npm', () => {
-  gulp.src('./package.json')
-  .pipe(gulp.dest('./dist/'))
-  .pipe(install({ production: true }));
-});
-
 // Watch Files For Changes
 gulp.task('watch', function() {
   gulp.watch('./src/**/*.js', ['test']);
@@ -68,5 +60,5 @@ gulp.task('watch', function() {
 
 // Default Task
 gulp.task('default', (callback) => {
-  return runSequence(['clean', 'test'], ['babel'], ['npm']);
+  return runSequence(['clean', 'test'], ['babel']);
 });
