@@ -1,6 +1,6 @@
 {
   "name": "lambda6",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple AWS Lambda handler architecture for ES6",
   "main": "lib/index.js",
   "repository": "https://github.com/nombers/lambda6",
