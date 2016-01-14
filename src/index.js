@@ -1,8 +1,6 @@
 // Base class for Lambda handler methods
 export class Handler {
 
-  name = 'Handler';
-
   /**
    * Creates a new instance of the base handler class. Subclasses should
    * override this if they wish to store objects available to the dispatch
