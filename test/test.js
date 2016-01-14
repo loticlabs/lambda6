@@ -60,6 +60,10 @@ describe('Handler', () => {
     }
 
     // TODO: Create shared behaviors
+    it('should throw exception for invalid "this" value', () => {
+      Handler.handle.bind(1, {}, {})
+      .should.throw(Error, 'handle() called with invalid "this" value');
+    });
     it('should throw exception for null event', () => {
       handle(null, null).should.throw(TypeError, missing.event);
     });
@@ -114,8 +118,7 @@ describe('Handler', () => {
       .should.throw(TypeError, 'handler "notOperation" must be a function');
     });
     it('should return a function for a valid operation name', () => {
-      h.validOperation.should.be.a('function');
-      expect(h['validOperation']).to.be.a('function');
+      expect(h.resolveOperation('validOperation')).to.be.a('function');
     });
   });
 });
