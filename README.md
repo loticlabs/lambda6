@@ -39,3 +39,16 @@ Lambda6 is opinionated, and it expects to receive an `event` with an `operation`
 }
 ```
 This allows you to create a thin dispatch layer between the event received and the method that will process the request. The `Handler` class contains `event` and `context` as member variables that can be accessed in the manner shown above.
+
+### 3. Export and expose the handler function to AWS lambda
+
+```javascript
+/**
+ * Method used by AWS Lambda to handle requests.
+ * @param event - the event payload
+ * @param context - the context in which the event runs.
+ */
+export function handler(event, context) {
+  return MyHandler.handle(event, context);
+}
+```
