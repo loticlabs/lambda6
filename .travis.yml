@@ -16,16 +16,11 @@ before_install:
   - npm install -g gulp codeclimate-test-reporter
 script:
   - gulp
-after_script:
+after_success:
   - gulp docs
+after_script:
   - codeclimate-test-reporter < coverage/lcov.info
 deploy:
-  - provider: s3
-    access_key_id: "$AWS_ACCESS_KEY_ID"
-    secret_access_key: "$AWS_SECRET_ACCESS_KEY"
-    bucket: "lambda6docs"
-    on:
-      branch: dev
   - provider: npm
     email: mmarshall@nombers.io
     api_key:
