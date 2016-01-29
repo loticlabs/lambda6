@@ -27,7 +27,7 @@ A simple ES6 handler architecture for AWS Lambda with opinionated defaults. The 
 * Promise-oriented using the venerable [Bluebird](https://github.com/petkaantonov/bluebird) library
 
 ## Documentation
-[JavaScript API docs](https://docs) are generated using [ESDoc](https://esdoc.org) during the build process. If any documentation is inaccurate or missing, please create an issue here on GitHub.
+[JavaScript API docs](http://lambda6-docs.s3-website-us-east-1.amazonaws.com/index.html) are generated using [ESDoc](https://esdoc.org) during the build process. If any documentation is inaccurate or missing, please create an issue here on GitHub.
 
 ### Getting Started
 The fastest way to get started is to use the [lambda6 Yeoman generator](https://github.com/nombers/generator-lambda6) to generate a new lambda6 project.

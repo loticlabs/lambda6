@@ -30,17 +30,73 @@ function deepCopyImmutable(root) {
   return root;
 }
 
-// Reserved for internal future use
+/**
+ * An endpoint is a prototype method in a {@link Handler} subclass. It's so-called
+ * because it is the end destination to which an event is dispatched. In the
+ * current version, an endpoint is simply a function with attached {@link EndpointMetadata}.
+ * In future versions, this may not be the case.
+ * @typedef {Function} Endpoint
+ * @property {EndpointMetadata} _λ6_metadata - attached handler metadata
+ * @example
+ *  @operation
+ *  testEndpoint() { return 'testEndpoint is an endpoint'; }
+ */
+
+/**
+ * Endpoint metadata is what {@link Handler} uses to inspect an an {@link Endpoint}
+ * to determine if it's eligible to handle a given operation. Operations are
+ * "whitelisted" so that properties (own or inherited) of the handler don't get
+ * exposed as operation endpoints where they aren't meant to.
+ * @typedef {Object} EndpointMetadata
+ */
 const _defaultMetadata = {};
 
 /**
+ * @external {Promise} http://bluebirdjs.com/docs/api-reference.html
+ * @external {AWSLambdaContext} http://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
+ */
+
+/**
  * Base class for AWS Lambda handlers. This class should be extended and new
- * operations should be added to the class as prototype/instance methods.
+ * operations should be added to the class as prototype/instance methods. A method
+ * added to the subclass needs to be registered with the {@link operator} decorator
+ * in order to be registered as operation {@link Endpoint}. {@link Handler}
+ * will handle an event in the following way:
+ * <ol>
+ * <li>Extract `operation` and `payload` from event using keys defined in {@link HandlerOptions}</li>
+ * <li>Lookup property `this[operation]` in handler and validate it as an {@link Endpoint}</li>
+ * <li>Create a new {@link InvocationContext} mirroring the current handler</li>
+ * <li>Invoke the {@link Endpoint}, setting `this` equal to the {@link InvocationContext}</li>
+ * <li>Call `context.succeed()` or `context.fail()` if an {@link AWSLambdaContext} is present</li>
+ * <li>Resolve or reject the results (or error) in the promise returned to the caller<li>
+ * </ol>
+ * @see http://docs.aws.amazon.com/lambda/latest/dg/programming-model.html
+ * @version 1.1.0
+ * @since 1.0.0
+ * @example
+ *
+ * import { Handler, operation } from 'lambda6';
+ *
+ * class MyHandler extends Handler {
+ *
+ *   @operation
+ *   echoOperationName() {
+ *     return { operationName: this.operation };
+ *   }
+ *
+ *   @operation
+ *   echoValuesFromPayload({ value1, value2 }) {
+ *     return { oldValue1: value1, oldValue2: value2 };
+ *   }
+ *
+ * }
  */
 export class Handler {
 
   /**
-   * Gets the key used to access the endpoint metadata.
+   * Gets the key used to access the {@link EndpointMetadata} for an {@link Endpoint}.
+   * @type {string}
+   * @since 1.1.0
    */
   static get metadataKey() {
     // String for now, will be a Symbol later
@@ -48,7 +104,9 @@ export class Handler {
   }
 
   /**
-   * Gets the default options for a new `Handler` instance.
+   * Gets the default options for a new {@link Handler} instance.
+   * @type {HandlerOptions}
+   * @since 1.1.0
    */
   static get defaultOptions() {
     return {
@@ -62,17 +120,27 @@ export class Handler {
    * override this if they wish to store custom data. Simply pass in an `options`
    * value and the data will be available as `this.options[key]` during method
    * invocation.
-   * @param {Object} options - an optional hash of options to adjust the handler.
+   * @param {HandlerOptions} [options] - hash of options to adjust the behavior
+   * of the handler
    */
   constructor(options) {
+    /**
+    * @typedef {Object} HandlerOptions
+    * @property {string|number} [operationKey] - the key used to lookup the `operation`
+    * from the `event` object.
+    * @property {string|number} [payloadKey] - the key used to lookup the `payload`
+    * from the `event` object.
+    */
     this.options = Object.assign({}, Handler.defaultOptions, options);
   }
 
   /**
    * Validates whether an endpoint object is valid and can be decorated with the
    * "@operation" decorator. If it is invalid, it will throw a `TypeError`.
-   * @param endpoint - the endpoint value to test
+   * @param {Endpoint} endpoint - the endpoint to validate
    * @throws {TypeError} if the endpoint is not valid.
+   * @private
+   * @since 1.1.0
    */
   static validateEndpoint(endpoint) {
     if (isUndefinedOrNull(endpoint)) {
@@ -86,14 +154,12 @@ export class Handler {
   }
 
   /**
-   * Gets the endpoint metadata from an endpoint. An endpoint, in this case is a
-   * the value in a key/value pair of this `Handler` where the key is the name
-   * of the operation. The value, then, can be anything that can be set as the
-   * value of a JavaScript property. Attaching metadata to the endpoint ensures
-   * that operations are "whitelisted" and that properties of the handler don't
-   * get exposed as operation endpoints where they aren't meant to.
-   * @param endpoint the endpoint to check, can be any value
+   * Gets the {@link EndpointMetadata} from an {@link Endpoint}.
+   * @param {Endpoint} endpoint - the endpoint to check, can be any value
    * @return {Promise} - a promise that resolves to metadata or rejects with error
+   * @throws {TypeError} if endpoint is null, undefined or not an {@link Endpoint}
+   * @throws {Error} if endpoint is valid but doesn't contain metadata
+   * @since 1.1.0
    */
   static getEndpointMetadata(endpoint) {
     return Promise.try(function() {
@@ -110,8 +176,11 @@ export class Handler {
   /**
    * Handler method that is exported to AWS Lambda.
    * @param {Object} event - the AWS Lambda event to be processed
-   * @param {Object} context - the AWS Lambda context
+   * @param {AWSLambdaContext} [context] - the AWS Lambda context, optional if testing
+   * @param {...args} [args] - additional arguments that will get passed to the
+   * endpoint method when it is invoked.
    * @returns {Promise} the promise-wrapped return value of the invoked endpoint
+   * @since 1.0.0
    */
   handle(event, context, ...args) {
 
@@ -145,6 +214,24 @@ export class Handler {
     // Lookup endpoint and invoke
     return this.resolveEndpoint(operation).spread((endpoint, metadata) => {
       // Run in "sandbox" with shadowed this
+      /**
+       * Object bound as `this` value when an {@link Endpoint} is invoked as the
+       * last stage of the event-handling lifecycle. This new context is created
+       * for a few reasons:
+       * <ol>
+       * <li>Provide only the invoked {@link Endpoint} with `event` and `context`
+       * without needing to clear the values from the handler afterward or pass
+       * them in as parameters. Instead, the parameters passed to the endpoint
+       * are those that are locally relevant, such as the `payload`.</li>
+       * <li>Implement a more functional approach with no shared state so that
+       * the handler has no real side effects to the `context` or `event`.</li>
+       * </ol>
+       * @typedef {Object} InvocationContext
+       * @property {EndpointMetadata} metadata - read-only copy of endpoint metadata
+       * @property {string|number} operation - the operation key that was resolved
+       * @property {Object} event - read-only copy of the event being handled
+       * @property {AWSLambdaContext} [context] - read-only copy of AWS Lambda callContextFn
+       */
       const thisArgs = {
         metadata: metadata,
         operation: operation,
@@ -162,6 +249,8 @@ export class Handler {
    * @param {Object} thisArgs - additional data to augment "this" during invocation
    * @param payload - the payload value of the event
    * @returns {Promise} a promise containing the result of invocation.
+   * @private
+   * @since 1.1.0
    */
   invoke(endpoint, thisArgs, payload, ...args) {
     // Synchronously (w/out Promise) invoke the endpoint
@@ -178,6 +267,7 @@ export class Handler {
    * @param {String} operation - the name of the operation to resolve
    * @return {Function} a function that can be called with the event payload.
    * @private
+   * @since 1.1.0
    */
   resolveEndpoint(operation) {
     // Synchronous (w/out Promise) resolve endpoint
@@ -201,6 +291,21 @@ export class Handler {
 
 /**
  * Operation decorator for handler methods.
+ * @param {Object} target - the target class of the decorator
+ * @param {string} key - the key used to access the method being decorated
+ * @param {Object} descriptor - the property descriptor of the method
+ * @return {Object} the modified property descriptor of the method
+ * @since 1.1.0
+ * @example
+ *
+ * import { Handler, operation } from 'lambda6'
+ *
+ * class TestHandler extends Handler {
+ *
+ *   @operation
+ *   decoratedOperation() { return 'handled'; }
+ *
+ * }
  */
 export function operation(target, key, descriptor) {
   const endpoint = target[key];
