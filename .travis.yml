@@ -2,6 +2,13 @@ language: node_js
 node_js:
   - '4.1'
 addons:
+  artifacts:
+    on:
+      branch: dev
+    debug: true
+    paths:
+      - $TRAVIS_BUILD_DIR/docs
+      - $TRAVIS_BUILD_DIR/coverage
   code_climate:
     repo_token:
       secure: "g44OCFwZetQ/4CDzJKMgrhNGBff25Pop22NEpe1lD03Of8J9VuzJ+bY7LnQmXDhjEGsitUwUagStm1WpZIfI/oGYJOipScGt8YR76DpiotMfw/B6kEbnUGwFBm4UIhwMFDOrWSo11EL1C0r89XouMTZ/3UZ/rRP1PPRaUrMW01vm1EdFvBg5j4P67i9+nlfigiSEIxbwiZew5Uoil3urUqe7okg9bhHINMfKxSurMFi7zJdobyd63tiePkz4FTaxgxixoO2MMCv1YWx2cZgLf+B7tI8Gi6Yq4QyrAcimk7yTW4ruMHMgsyET40YrjgOOvto7z8O2CHE5MlFBUzVmY3q/hPzkdE2ujH8RT+5k9LJUB2F7kpU0lWycay+iog32keh/l6ftoHMFm5NIsPj0DKX/pg9VzvdNJGqaqhpfYBIHAwZQzj5g1x35pSXwaYmpPzHX2Z+2YgR+he7kaeXEaeeohRMvA1nprr/pCPis6DE7pG3SjDF3mXVQkND6BMSylYxAHeNdTijmAuaitEAhsoT8hIpyxxbcgAFEpecr3x3JeGXg2H9W5PlNuTMYsb2QhY8wc1UmtSKNfEnKXFymQJq9wa5MOTOk8XDV/DnVOaNGA/j49XdUuuaP/ZMhGYLL0AD/UR68KiEBYuHXUSLrT/ygR0tEsxVUYQTFxatzwR4="
@@ -10,12 +17,19 @@ before_install:
 script:
   - gulp
 after_script:
+  - gulp docs
   - codeclimate-test-reporter < coverage/lcov.info
 deploy:
-  provider: npm
-  email: mmarshall@nombers.io
-  api_key:
-    secure: LW+Emt+HZX2uHFu+b0CimW6+MmpZ78wncb2z1t7agPvMBTh2FuN1Up83n17ZKcwhHSzhoh9HNNEsjjOgls9VocXEwHJqkjGwFeZoFDX+f1ErHwCn9dN/lOd1kAy7zPFPBiL7UEj4qo6wnzIg/yrftb2Ys5mdp1n3E7cqolcB6BVQfAYjBey5DRN3IRLAbFMGWjoAKWrFPIJj7EQnxUE6HObAWydhwYTX2kac84wUFIJOU6Mk9g9NKfxj4xgGproom/vNn0DbcuuAQ0gQhO+vOG90zo+4M32EnFB6hykc35w00C6H9S5LSC/zRRaygzTuHZPyCOXOnGSThEJg+wu1ldZ9jjIaXOqu/OTMFDgBKrnfa6ocY4TQbpmT2vEqCbON0VCijBZ3IDHXsMi0ZJ7p7LPEJO7Pd1aBal7zNHEspw68KytsuQFnIS3TAyC38enV7P957f+wCx7qrnufAV0sSqCDE4S0oBAlTqzbqDZCo5u7ak771Prrs8sciF8GJ5I21PIhcoaycIlisjemdNp8aOMUek5DKcHoubExjWEdYzrCww6GKfGJVU8S1sSglXiR7iC4SwmlOz6PTrviH0zJPkGYJyiNciAO/lCR5umqBfBYMc5ZXMoyTygt1Q/SRYCYYETgavFzq7PjcHxDolZkWGxJ9PkAsolNrEpxn1UfLSQ=
-  on:
-    tags: true
-    repo: nombers/lambda6
+  - provider: s3
+    access_key_id: "$AWS_ACCESS_KEY_ID"
+    secret_access_key: "$AWS_SECRET_ACCESS_KEY"
+    bucket: "lambda6docs"
+    on:
+      branch: dev
+  - provider: npm
+    email: mmarshall@nombers.io
+    api_key:
+      secure: LW+Emt+HZX2uHFu+b0CimW6+MmpZ78wncb2z1t7agPvMBTh2FuN1Up83n17ZKcwhHSzhoh9HNNEsjjOgls9VocXEwHJqkjGwFeZoFDX+f1ErHwCn9dN/lOd1kAy7zPFPBiL7UEj4qo6wnzIg/yrftb2Ys5mdp1n3E7cqolcB6BVQfAYjBey5DRN3IRLAbFMGWjoAKWrFPIJj7EQnxUE6HObAWydhwYTX2kac84wUFIJOU6Mk9g9NKfxj4xgGproom/vNn0DbcuuAQ0gQhO+vOG90zo+4M32EnFB6hykc35w00C6H9S5LSC/zRRaygzTuHZPyCOXOnGSThEJg+wu1ldZ9jjIaXOqu/OTMFDgBKrnfa6ocY4TQbpmT2vEqCbON0VCijBZ3IDHXsMi0ZJ7p7LPEJO7Pd1aBal7zNHEspw68KytsuQFnIS3TAyC38enV7P957f+wCx7qrnufAV0sSqCDE4S0oBAlTqzbqDZCo5u7ak771Prrs8sciF8GJ5I21PIhcoaycIlisjemdNp8aOMUek5DKcHoubExjWEdYzrCww6GKfGJVU8S1sSglXiR7iC4SwmlOz6PTrviH0zJPkGYJyiNciAO/lCR5umqBfBYMc5ZXMoyTygt1Q/SRYCYYETgavFzq7PjcHxDolZkWGxJ9PkAsolNrEpxn1UfLSQ=
+    on:
+      tags: true
+      repo: nombers/lambda6
