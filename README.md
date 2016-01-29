@@ -23,7 +23,7 @@ A simple ES6 handler architecture for AWS Lambda with opinionated defaults. The 
 * 100% ES6, albeit transpiled to ES5
 * Limited or no [dependencies](#dependencies) (small code base)
 * Easy dispatching of events based on event structure, with sane defaults
-* Minimalist and intuitive [request lifecycle](#Request-Lifecycle)
+* Minimalist and intuitive request lifecycle
 * Promise-oriented using the venerable [Bluebird](https://github.com/petkaantonov/bluebird) library
 
 ## Documentation
