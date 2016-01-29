@@ -2,13 +2,6 @@ language: node_js
 node_js:
   - '4.1'
 addons:
-  artifacts:
-    on:
-      branch: dev
-    debug: true
-    paths:
-      - $TRAVIS_BUILD_DIR/docs
-      - $TRAVIS_BUILD_DIR/coverage
   code_climate:
     repo_token:
       secure: "g44OCFwZetQ/4CDzJKMgrhNGBff25Pop22NEpe1lD03Of8J9VuzJ+bY7LnQmXDhjEGsitUwUagStm1WpZIfI/oGYJOipScGt8YR76DpiotMfw/B6kEbnUGwFBm4UIhwMFDOrWSo11EL1C0r89XouMTZ/3UZ/rRP1PPRaUrMW01vm1EdFvBg5j4P67i9+nlfigiSEIxbwiZew5Uoil3urUqe7okg9bhHINMfKxSurMFi7zJdobyd63tiePkz4FTaxgxixoO2MMCv1YWx2cZgLf+B7tI8Gi6Yq4QyrAcimk7yTW4ruMHMgsyET40YrjgOOvto7z8O2CHE5MlFBUzVmY3q/hPzkdE2ujH8RT+5k9LJUB2F7kpU0lWycay+iog32keh/l6ftoHMFm5NIsPj0DKX/pg9VzvdNJGqaqhpfYBIHAwZQzj5g1x35pSXwaYmpPzHX2Z+2YgR+he7kaeXEaeeohRMvA1nprr/pCPis6DE7pG3SjDF3mXVQkND6BMSylYxAHeNdTijmAuaitEAhsoT8hIpyxxbcgAFEpecr3x3JeGXg2H9W5PlNuTMYsb2QhY8wc1UmtSKNfEnKXFymQJq9wa5MOTOk8XDV/DnVOaNGA/j49XdUuuaP/ZMhGYLL0AD/UR68KiEBYuHXUSLrT/ygR0tEsxVUYQTFxatzwR4="
@@ -21,6 +14,16 @@ after_success:
 after_script:
   - codeclimate-test-reporter < coverage/lcov.info
 deploy:
+  - provider: s3
+    access_key_id:
+      secure: "sphhDBF0i01ia0E8Y+aQNXOcttAbP45+SfVxA4+ZNaGOvHr/S/t0DCY7bO+wabHIMmVj/27eFZwOzb3V35aD02hP0sIhdc+gGf3IJ44/jTB/B7K0vE8/ZjBiNi2nsdjnV0c1BluikuFXbiRQwoS720PG7mfKTs6TvjZwJVasmLtknxiZy2W1W2XQ7dX57pynIjwa/1ocGbEiQenGgmjD27LxLLSOEOpKezgfKJ1MzKEP1Ih6abGFugITksfCoTB9AzY72Tkz0MAa7Asiw5xaCdLDy1HLtcHSZalbQbsg4EfTeI+xOtJsF00wTZW3O/RKgrG5ffIHzK8LHP6kN8adu9Q1cFsY+l2K9Ocl6ebXkKDqIKnXuiFlkilmt1B0weXdCXAjVWso+XFlyQTmz7CLT1CNQoK7Ima6MgXxKsifqxS7SppFVyHd20oHUwtY55bNbjRuMREQQAopriNCSpcI/wdpXBwpiznZUXhgfrJlZF3uF2mVGExgUBpcg755clg5WO95chszgIU0umnEpu7qaL9ozCwRZnvFDxRvu5qtqy93Zsh6TrswNgQ9owcnqthHW2d8csTyZCBdxEjeYzMzs5hDaWloSTmxa7QYlfYdTzVTRwalfzF493ZYh2HpSm5lmE6Yge43LEFtb5M0sLBr4LJU+UeOU2xrdq4hSXHKxg4="
+    secret_access_key:
+      secure: "rO3426QvifiCx7EXdmjSHaGwcZfFALZqN2BxvaMzaRdyANXYrwH3pW6cLgiyUxUhcpyI3xCXK3Pnhd6iNT+05Wc9Ir3r7KEGohZTFyWI+IHxPpgUlwSK3TdPmym8De6aS6aQBf4g89unkyRfcTJ1uChe/0f5ch/V6ZrrY4fubpGqW2w20rvqiTLR7SsnTlz7DE+ljxeMNz78ingbZHv84ErzypuXfeZW06ZzW+1sXphkhgr1dydesBVJkL/kpWrY/wYYb0zabPlmldm8LNaDAd73IdCfXwKHEcuy0P0iiFtZf3YGOLXJ1Lb+hLSyb/9wqHNzxU07tBTJQ1RA4JRR50TOx/G7bL55i2yDQNZBFLQQg3c0Sp35K0tMhK4kp1uiwsyIVmXsPfFiEh+cVTWiAh6rMcefXLS6Ubm3SjXRmCXKUCUfBi8htQYHeNNRtSW4Pqo8xaICM2soXje9l7rV8A823UbwpLRV7odE6MOmql3jmdz9Oy2ElVDIUZA5nM3frWvXWZZrySsDpXtd9VmC0kJLdoYIhfV6xq6999VCE/7pvgRMKE3g5GtovE4ciP9aJDnZzraNNnyLPqPlZq+iFy5/rV8HEeVHy/8pSJWsuQNGe5Jgykr+pay8fUaKc27LedTg6PccHUCPxoPx35JqByWHaQC9FUIdS/QcyPlsGZc="
+    bucket: lambda6-docs
+    local-dir: docs
+    skip-cleanup: true
+    on:
+      branch: dev
   - provider: npm
     email: mmarshall@nombers.io
     api_key:

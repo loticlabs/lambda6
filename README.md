@@ -13,7 +13,7 @@ A simple ES6 handler architecture for AWS Lambda with opinionated defaults. The 
     * [Usage](#usage)
     * [Dependencies](#dependencies)
 * [Building](#building)
-* [Contributing](#Contributing)
+* [Contributing](#contributing)
 * [Future Improvements](#future-improvements)
 
 ## Installing
@@ -43,6 +43,7 @@ The last line above will deploy your function to AWS Lambda using the settings c
 
 ### Usage
 #### 1. Create a subclass of Handler
+Within your subclass, create methods for each operation. Register these methods using the `@operation` decorator.
 
 ```javascript
 import { Handler, operation } from 'lambda6'
@@ -53,7 +54,7 @@ class HelloHandler extends Handler {
   greet({ greeting, title, name }) {
     const fullName = `${title} ${name}`;
     return `${this.operation}: ${greeting}, ${fullName}`;
-    // returns "greet: Mr. Bond"
+    // returns "greet: hello Mr. Bond"
   }
 
 }
@@ -76,7 +77,8 @@ Here's an example of calling the `HelloHandler` class with a Lambda event:
   "operation": "greet",
   "payload": {
     "name": "Bond",
-    "title": "Mr."
+    "title": "Mr.",
+    "greeting": "hello"
   }
 }
 ```
@@ -86,7 +88,7 @@ This allows you to create a thin dispatch layer between the event received and t
 * prototype set to the `Handler` subclass of which `greet` is member
 * `metadata`, `operation`, `event` and `context` immutable properties of `this`
 
-#### 3. Export and expose the handler function to AWS lambda
+#### 3. Export and expose the handler function to AWS Lambda
 
 ```javascript
 export function handler(event, context) {
@@ -96,7 +98,7 @@ export function handler(event, context) {
 ```
 
 ### Dependencies
-lambda6 has only one runtime dependency, which is [Bluebird](https://github.com/petkaantonov/bluebird). Other than that, an ES5 runtime is required. This keeps the code base compact, leading to faster provisioning times in AWS Lambda.
+lambda6 has only one runtime dependency: [Bluebird](https://github.com/petkaantonov/bluebird). Other than that, an ES5 runtime is required. This keeps the code base compact, leading to faster provisioning times in AWS Lambda.
 
 ## Building
 This project uses [gulp](https://gulpjs.com) to perform the necessary build steps. The default build step (which transpiles the ES6 code to `lib`) can be invoked like so:
