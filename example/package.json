@@ -25,7 +25,8 @@
     "gulp-mocha": "^2.2.0",
     "gulp-zip": "^3.1.0",
     "isparta": "^4.0.0",
-    "run-sequence": "^1.1.5"
+    "run-sequence": "^1.1.5",
+    "sinon": "^1.17.3"
   },
   "scripts": {
     "test": "echo \"Run tests with gulp instead\" && exit 1"
