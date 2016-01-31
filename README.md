@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/nombers/lambda6.svg)](https://travis-ci.org/nombers/lambda6)
 [![Code Climate](https://codeclimate.com/github/nombers/lambda6/badges/gpa.svg)](https://codeclimate.com/github/nombers/lambda6)
 [![Test Coverage](https://codeclimate.com/github/nombers/lambda6/badges/coverage.svg)](https://codeclimate.com/github/nombers/lambda6/coverage)
+[![npm version](https://badge.fury.io/js/lambda6.svg)](https://badge.fury.io/js/lambda6)
 
 A simple ES6/7 handler architecture for AWS Lambda with opinionated defaults. The base class, `Handler` can be subclassed to provide a structured framework for handling AWS Lambda events. `Handler` matches an event `operationKey` to a method name by default, and extracts an argument for that method from the event using the `payloadKey`. Both of these keys can be changed by passing in an options hash to the constructor.
 
