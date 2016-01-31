@@ -1,35 +1,7 @@
 import Promise from 'bluebird';
 
-function isUndefinedOrNull(val) {
-  return val == null; //eslint-disable-line no-eq-null, eqeqeq
-}
-
-/**
- * Performs a deep copy on an object's own properties and makes the returned
- * copy immutable (read-only and non-configurable).
- * @param {Object} root - the object to copy
- * @returns {Object} an immutable deep copy of the object
- */
-function deepCopyImmutable(root) {
-  function _createDescriptors(obj) {
-    const propDesc = {};
-    Object.keys(obj).forEach(key => {
-      const val = obj[key];
-      propDesc[key] = {
-        writable: false,
-        configurable: false,
-        enumerable: true,
-        value: deepCopyImmutable(val)
-      }
-    });
-    return propDesc;
-  }
-  if (root instanceof Object) {
-    return Object.freeze(Object.create(null, _createDescriptors(root)));
-  }
-  return root;
-}
-
+/** @external {Promise} http://bluebirdjs.com/docs/api-reference.html */
+/** @external {AWSLambdaContext} http://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html */
 /**
  * An endpoint is a prototype method in a {@link Handler} subclass. It's so-called
  * because it is the end destination to which an event is dispatched. In the
@@ -37,10 +9,65 @@ function deepCopyImmutable(root) {
  * In future versions, this may not be the case.
  * @typedef {Function} Endpoint
  * @property {EndpointMetadata} _λ6_metadata - attached handler metadata
+ * @experimental Future versions may allow a more abstract model for endpoints.
+ * Interacting directly with and endpoint or its metadata may cause breaking
+ * changes.
+ * @since 2.0.0
  * @example
  *  @operation
  *  testEndpoint() { return 'testEndpoint is an endpoint'; }
  */
+
+function isUndefinedOrNull(val) {
+  return val == null; //eslint-disable-line no-eq-null, eqeqeq
+}
+
+function checkType(obj, name, types) {
+  if (isUndefinedOrNull(obj)) {
+    throw new TypeError(`invalid type for ${name}, cannot be ${obj}`);
+  }
+  let theType = typeof obj;
+  // Currently only functions are allowed as endpoints
+  if (types.indexOf(theType) < 0) { //eslint-disable-line no-magic-numbers
+                // ^^ AWS doesn't support Array.prototype.includes()
+    throw new TypeError(`invalid type for ${name}, cannot be ${theType}`);
+  }
+}
+
+function deepCopy(obj, tpl) {
+  if (obj != null) { //eslint-disable-line no-eq-null,eqeqeq
+    // Use typeof here instead of instanceof so that functions get copied over
+    if (typeof obj === 'object') {
+      return Object.create(null, createCopyDescriptors(obj, true, tpl)); //eslint-disable-line no-use-before-define
+    }
+  }
+  return obj;
+}
+
+/**
+ * Creates a dictionary of property descriptors that can be used as the second
+ * argument to {@link Object.defineProperties}. It does this by enumerating
+ * the own properties of `obj` using {@link Object.keys} and then constructing
+ * an object with corresponding keys and property descriptors as values of those
+ * keys. The property descriptor is created using `template` as starting point, to
+ * which it adds a `value` property. This method can also make deep copies of
+ * `obj` by passing in a truthy `deep` value. This method doesn't type check `obj`.
+ * @param {Object} object - the object to create copy descriptors for
+ * @param {boolean} [deep] - controls whether the `value` property of the property
+ * @param {Object} [template] - a property descriptor template, to which `value` is added
+ * descriptor should be populated with a deeply-copied value from the source object.
+ * @return {Object} that contains property descriptors to use in {@link Object.create}
+ */
+function createCopyDescriptors(obj, deep, template) {
+  const pdc = {};
+  const _tpl = template || { enumerable: true };
+  Object.keys(obj).forEach(key => {
+    const val = obj[key];
+    const valueDesc = { value: { value:  deep ? deepCopy(val, _tpl) : val } };
+    pdc[key] = Object.create(_tpl, valueDesc);
+  });
+  return pdc;
+}
 
 /**
  * Endpoint metadata is what {@link Handler} uses to inspect an an {@link Endpoint}
@@ -48,30 +75,27 @@ function deepCopyImmutable(root) {
  * "whitelisted" so that properties (own or inherited) of the handler don't get
  * exposed as operation endpoints where they aren't meant to.
  * @typedef {Object} EndpointMetadata
+ * @since 2.0.0
+ * @experimental The properties of this are likely to change.
  */
 const _defaultMetadata = {};
 
 /**
- * @external {Promise} http://bluebirdjs.com/docs/api-reference.html
- * @external {AWSLambdaContext} http://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
- */
-
-/**
  * Base class for AWS Lambda handlers. This class should be extended and new
- * operations should be added to the class as prototype/instance methods. A method
- * added to the subclass needs to be registered with the {@link operator} decorator
- * in order to be registered as operation {@link Endpoint}. {@link Handler}
- * will handle an event in the following way:
+ * operations should be added to the class as prototype methods. A method added
+ * to the subclass needs to be registered with the {@link operation} decorator in
+ * order to be visible as an operation {@link Endpoint}. {@link Handler} will handle
+ * an event in the following way:
  * <ol>
- * <li>Extract `operation` and `payload` from event using keys defined in {@link HandlerOptions}</li>
+ * <li>Extract `operation` and `payload` from the event using keys defined in {@link HandlerOptions}</li>
  * <li>Lookup property `this[operation]` in handler and validate it as an {@link Endpoint}</li>
- * <li>Create a new {@link InvocationContext} mirroring the current handler</li>
- * <li>Invoke the {@link Endpoint}, setting `this` equal to the {@link InvocationContext}</li>
+ * <li>Create a new {@link InvocationContext} with the current handler as the prototype</li>
+ * <li>Invoke the {@link Endpoint}, binding `this` to the {@link InvocationContext}</li>
  * <li>Call `context.succeed()` or `context.fail()` if an {@link AWSLambdaContext} is present</li>
- * <li>Resolve or reject the results (or error) in the promise returned to the caller<li>
+ * <li>Resolve or reject the results (or error) in the promise returned to the caller</li>
  * </ol>
  * @see http://docs.aws.amazon.com/lambda/latest/dg/programming-model.html
- * @version 1.1.0
+ * @version 2.0.0
  * @since 1.0.0
  * @example
  *
@@ -95,8 +119,11 @@ export class Handler {
 
   /**
    * Gets the key used to access the {@link EndpointMetadata} for an {@link Endpoint}.
+   * The current value is "_λ6_metadata" and most likely won't conflict with any
+   * existing properties of the function. AWS Lambda does not yet support {@link Symbol},
+   * so the metadata key is currently a string.
    * @type {string}
-   * @since 1.1.0
+   * @since 2.0.0
    */
   static get metadataKey() {
     // String for now, will be a Symbol later
@@ -104,9 +131,10 @@ export class Handler {
   }
 
   /**
-   * Gets the default options for a new {@link Handler} instance.
+   * Gets the default options for a new {@link Handler} instance. The defaults
+   * are "operation" and "payloadKey" for
    * @type {HandlerOptions}
-   * @since 1.1.0
+   * @since 2.0.0
    */
   static get defaultOptions() {
     return {
@@ -122,14 +150,21 @@ export class Handler {
    * invocation.
    * @param {HandlerOptions} [options] - hash of options to adjust the behavior
    * of the handler
+   * @since 2.0.0
    */
   constructor(options) {
     /**
+    * The {@link Handler} can be customized to inspect different values for the
+    * operation and payload within the event. Currently, deep gets are not supported
+    * for key values, so the data must reside as a direct child of the root JSON
+    * object (event).
     * @typedef {Object} HandlerOptions
-    * @property {string|number} [operationKey] - the key used to lookup the `operation`
+    * @property {string} [operationKey] - the key used to lookup the `operation`
     * from the `event` object.
-    * @property {string|number} [payloadKey] - the key used to lookup the `payload`
+    * @property {string} [payloadKey] - the key used to lookup the `payload`
     * from the `event` object.
+    * @since 2.0.0
+    * @todo Add support deep gets for operation and payload keys.
     */
     this.options = Object.assign({}, Handler.defaultOptions, options);
   }
@@ -138,39 +173,29 @@ export class Handler {
    * Validates whether an endpoint object is valid and can be decorated with the
    * "@operation" decorator. If it is invalid, it will throw a `TypeError`.
    * @param {Endpoint} endpoint - the endpoint to validate
-   * @throws {TypeError} if the endpoint is not valid.
+   * @throws {TypeError} if the endpoint is not of the correct type
    * @private
-   * @since 1.1.0
+   * @since 2.0.0
    */
   static validateEndpoint(endpoint) {
-    if (isUndefinedOrNull(endpoint)) {
-      throw new TypeError(`endpoint cannot be null or undefined`);
-    }
-    let theType = typeof endpoint;
-    // Currently only functions are allowed as endpoints
-    if (['function'].indexOf(theType) < 0) { //eslint-disable-line no-magic-numbers
-      throw new TypeError(`invalid endpoint type, cannot be ${theType}`);
-    }
+    checkType(endpoint, 'endpoint', ['function']);
   }
 
   /**
    * Gets the {@link EndpointMetadata} from an {@link Endpoint}.
-   * @param {Endpoint} endpoint - the endpoint to check, can be any value
-   * @return {Promise} - a promise that resolves to metadata or rejects with error
-   * @throws {TypeError} if endpoint is null, undefined or not an {@link Endpoint}
-   * @throws {Error} if endpoint is valid but doesn't contain metadata
-   * @since 1.1.0
+   * @param {Endpoint} endpoint - the endpoint to check
+   * @return {EndpointMetadata} the metadata attached to the given endpoint, or `undefined`
+   * @throws {TypeError} if the metadata is of the wrong type (not an object), including `null`
+   * @since 2.0.0
    */
   static getEndpointMetadata(endpoint) {
-    return Promise.try(function() {
-      Handler.validateEndpoint(endpoint);
-      let metadata;
-      if (!endpoint.hasOwnProperty(Handler.metadataKey) ||
-          !(metadata = endpoint[Handler.metadataKey]) instanceof Object) {
-        throw new Error(`endpoint metadata not found`);
-      }
-      return metadata;
-    });
+    Handler.validateEndpoint(endpoint);
+    if (!endpoint.hasOwnProperty(Handler.metadataKey)) {
+      return;
+    }
+    const metadata = endpoint[Handler.metadataKey];
+    checkType(metadata, 'endpoint metadata', ['object']);
+    return metadata;
   }
 
   /**
@@ -179,8 +204,9 @@ export class Handler {
    * @param {AWSLambdaContext} [context] - the AWS Lambda context, optional if testing
    * @param {...args} [args] - additional arguments that will get passed to the
    * endpoint method when it is invoked.
-   * @returns {Promise} the promise-wrapped return value of the invoked endpoint
-   * @since 1.0.0
+   * @returns {Promise} that resolves to the return value of the invoked endpoint
+   * or rejects with an error
+   * @since 2.0.0
    */
   handle(event, context, ...args) {
 
@@ -212,25 +238,29 @@ export class Handler {
     } = event;
 
     // Lookup endpoint and invoke
-    return this.resolveEndpoint(operation).spread((endpoint, metadata) => {
-      // Run in "sandbox" with shadowed this
+    return Promise.try(() => this.resolveEndpoint(operation))
+    .spread((endpoint, metadata) => {
       /**
        * Object bound as `this` value when an {@link Endpoint} is invoked as the
-       * last stage of the event-handling lifecycle. This new context is created
-       * for a few reasons:
+       * last stage of the event-handling lifecycle. There are a few reasons for
+       * binding to the new context:
        * <ol>
        * <li>Provide only the invoked {@link Endpoint} with `event` and `context`
-       * without needing to clear the values from the handler afterward or pass
-       * them in as parameters. Instead, the parameters passed to the endpoint
-       * are those that are locally relevant, such as the `payload`.</li>
+       * without needing to make these values universally available.</li>
+       * <li>Allow parameters passed to the endpoint to be only those that are
+       * locally relevant, such as the `payload`. In the future, this may include
+       * providing additional filters or middleware.</li>
        * <li>Implement a more functional approach with no shared state so that
-       * the handler has no real side effects to the `context` or `event`.</li>
+       * the handler has no real side effects to the `context` or `event`. This
+       * enables future event handling schemes such as fanning out the event to
+       * multiple endpoints.</li>
        * </ol>
        * @typedef {Object} InvocationContext
-       * @property {EndpointMetadata} metadata - read-only copy of endpoint metadata
-       * @property {string|number} operation - the operation key that was resolved
-       * @property {Object} event - read-only copy of the event being handled
-       * @property {AWSLambdaContext} [context] - read-only copy of AWS Lambda callContextFn
+       * @property {EndpointMetadata} metadata - metadata of current endpoint
+       * @property {string|number} operation - operation key of current endpoint
+       * @property {Object} event - the event being handled
+       * @property {AWSLambdaContext} [context] - the AWS Lambda context
+       * @since 2.0.0
        */
       const thisArgs = {
         metadata: metadata,
@@ -244,58 +274,98 @@ export class Handler {
   }
 
   /**
+   * Creates an {@link InvocationContext} by creating a new object with the current
+   * {@link Handler} instance as the prototype, assigning the properties from
+   * `thisArgs` as read-only, enumerable own properties of the object and _optionally_
+   * performing a deep copy of the values in `thisArgs` to make them deeply immutable.
+   * The resulting object is then used as the `this` value during invocation of
+   * the {@link Endpoint}.
+   * @param {Object} [thisArgs] - object containing assignable values
+   * @return {InvocationContext} that can be used to invoke an endpoint
+   * @throws {TypeError} if `thisArgs` is not `undefined` or `null` and isn't an object
+   * @since 2.0.0
+   * @experimental Deep copying is disabled by default. To enable, set options.deepCopy
+   * to a truthy value. This feature requires further testing to make sure it
+   * operates as expected within the AWS environment.
+   */
+  createInvocationContext(thisArgs) {
+    let descriptors;
+    if (thisArgs != null) { //eslint-disable-line no-eq-null,eqeqeq
+      if (typeof thisArgs !== 'object') {
+        throw new TypeError(`thisArgs must be an object`);
+      }
+      descriptors = createCopyDescriptors(thisArgs, this.options.deepCopy);
+    }
+    return Object.create(this, descriptors);
+  }
+
+  /**
    * Invokes a endpoint (function) with payload and optional arguments.
    * @param {Function} endpoint - the endpoint to invoke
    * @param {Object} thisArgs - additional data to augment "this" during invocation
-   * @param payload - the payload value of the event
+   * @param [payload] - the payload value of the event
    * @returns {Promise} a promise containing the result of invocation.
    * @private
-   * @since 1.1.0
+   * @since 2.0.0
    */
   invoke(endpoint, thisArgs, payload, ...args) {
     // Synchronously (w/out Promise) invoke the endpoint
     const _invoke = () => {
-      const ictx = deepCopyImmutable(thisArgs);
-      const _epThis = Object.assign(Object.create(this), ictx);
-      return endpoint.call(_epThis, payload, ...args);
+      const ictx = this.createInvocationContext(thisArgs);
+      return endpoint.call(ictx, payload, ...args);
     }
     return Promise.try(_invoke);
   }
 
   /**
-   * Resolves an operation name to an instance method of a derived class.
-   * @param {String} operation - the name of the operation to resolve
-   * @return {Function} a function that can be called with the event payload.
-   * @private
-   * @since 1.1.0
+   * Resolves an operation name to a prototype method of a derived class. This
+   * method is a wrapper for {@link Handler.getEndpointMetadata} that type checks
+   * the operation name to make sure it isn't `null` or `undefined`, then attempts
+   * to retrieve the endpoint and metadata.
+   * @param {string} operation - the name of the operation to resolve
+   * @return {Array} - an array with two elements: the endpoint function and the metadata
+   * @property {Endpoint} 0 - the endpoint function
+   * @property {EndpointMetadata} 1 - the endpoint metadata
+   * @throws {TypeError} if `operation` is not a string, or if the endpoint has
+   * invalid metadata.
+   * @throws {Error} if an endpoint cannot be found
+   * @since 2.0.0
    */
   resolveEndpoint(operation) {
-    // Synchronous (w/out Promise) resolve endpoint
-    const _resolveEndpoint = () => {
+    checkType(operation, 'operation', ['string']);
 
-      // Validate operation, can be anything that's a valid key for an object
-      if (isUndefinedOrNull(operation)) {
-        throw new TypeError(`operation is required`);
+    // Throw the same error for not found and for metadata issues
+    const notFound = () => {
+      throw new Error(`endpoint not found for operation "${operation}"`);
+    };
+
+    // Get endpoint and metadata (or throw)
+    const endpoint = this[operation];
+    if (!isUndefinedOrNull(endpoint)) {
+      try {
+        const metadata = Handler.getEndpointMetadata(endpoint);
+        if (!isUndefinedOrNull(metadata)) {
+          return [endpoint, metadata];
+        }
+      } catch (e) {
+        console.error(e); //eslint-disable-line no-console
       }
-
-      // Get endpoint and metadata (or throw)
-      const endpoint = this[operation];
-      const metadata = Handler.getEndpointMetadata(endpoint);
-
-      // Return array
-      return [endpoint, metadata];
     }
-    return Promise.try(_resolveEndpoint);
+
+    // Got here, so the endpoint couldn't be found
+    notFound();
   }
 }
 
 /**
- * Operation decorator for handler methods.
+ * Operation decorator for handler methods. Decorating a method in a `Handler`
+ * subclass will attach a {@link EndpointMetadata} to that method, making it
+ * visible as an operation {@link Endpoint}.
  * @param {Object} target - the target class of the decorator
  * @param {string} key - the key used to access the method being decorated
  * @param {Object} descriptor - the property descriptor of the method
  * @return {Object} the modified property descriptor of the method
- * @since 1.1.0
+ * @since 2.0.0
  * @example
  *
  * import { Handler, operation } from 'lambda6'
@@ -310,7 +380,7 @@ export class Handler {
 export function operation(target, key, descriptor) {
   const endpoint = target[key];
   Handler.validateEndpoint(endpoint);
-  endpoint[Handler.metadataKey] = _defaultMetadata;
+  endpoint[Handler.metadataKey] = Object.assign({}, _defaultMetadata);
   descriptor.enumerable = true; // make visible for operation introspection
   return descriptor;
 }

@@ -6,11 +6,11 @@ import babel from 'gulp-babel';
 import mocha from 'gulp-mocha';
 import esdoc from 'gulp-esdoc';
 import eslint from 'gulp-eslint';
+import uglify from 'gulp-uglify';
 import babelCore from 'babel-core/register';
 import runSequence from 'run-sequence';
 import istanbul from 'gulp-istanbul';
 import * as isparta from 'isparta';
-import rename from 'gulp-rename';
 import del from 'del';
 
 // Clean task
@@ -30,6 +30,7 @@ gulp.task('lint', function () {
 gulp.task('babel', () => {
   return gulp.src('./src/**/*.js')
     .pipe(babel())
+    .pipe(uglify())
     .pipe(gulp.dest('lib'));
 });
 

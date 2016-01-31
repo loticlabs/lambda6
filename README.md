@@ -3,7 +3,9 @@
 [![Code Climate](https://codeclimate.com/github/nombers/lambda6/badges/gpa.svg)](https://codeclimate.com/github/nombers/lambda6)
 [![Test Coverage](https://codeclimate.com/github/nombers/lambda6/badges/coverage.svg)](https://codeclimate.com/github/nombers/lambda6/coverage)
 
-A simple ES6 handler architecture for AWS Lambda with opinionated defaults. The base class, `Handler` can be subclassed to provide a structured framework for handling AWS Lambda events. `Handler` matches an event `operationKey` to a method name by default, and extracts an argument for that method from the event using the `payloadKey`. Both of these keys can be changed by passing in an options hash to the constructor.
+A simple ES6/7 handler architecture for AWS Lambda with opinionated defaults. The base class, `Handler` can be subclassed to provide a structured framework for handling AWS Lambda events. `Handler` matches an event `operationKey` to a method name by default, and extracts an argument for that method from the event using the `payloadKey`. Both of these keys can be changed by passing in an options hash to the constructor.
+
+_see [.babelrc](#.babelrc) for precisely what ES6/7 features are used._
 
 ### Table of Contents
 * [Installing](#installing)
@@ -20,7 +22,7 @@ A simple ES6 handler architecture for AWS Lambda with opinionated defaults. The 
 `npm install --save lambda6`
 
 ## Design Goals
-* 100% ES6, albeit transpiled to ES5
+* 100% ES6/7*, albeit transpiled by [Babel](https://babeljs.io/)
 * Limited or no [dependencies](#dependencies) (small code base)
 * Easy dispatching of events based on event structure, with sane defaults
 * Minimalist and intuitive request lifecycle
@@ -35,7 +37,7 @@ The fastest way to get started is to use the [lambda6 Yeoman generator](https://
 ```bash
 npm install -g yo generator-lambda6
 mkdir lambda-6-sample && cd $_
-yo lambda-6
+yo lambda6
 gulp lambda
 ```
 
@@ -69,7 +71,7 @@ Options Key  | Required | Default     | Description
 operationKey | Yes      | "operation" | the operation/method to invoke
 payloadKey   | Yes      | "payload"   | method argument/payload
 
-The `Handler` class uses `operation` to find an appropriate method to handle the request and then passes the `payload` to that method. The dispatched method can optionally retrieve the same data from `this.event.payload`, so the method argument is there for convenience.
+The `Handler` class uses `operation` to find an appropriate method to handle the request and then passes the `payload` to that method. The dispatched method can optionally retrieve the same data from `this.event.payload`, so the method argument is there for convenience. Deep gets (like lodash's `_.get()`) for key names are not yet supported.
 
 Here's an example of calling the `HelloHandler` class with a Lambda event:
 ```javascript
@@ -120,10 +122,11 @@ Pull requests are welcome and encouraged. Please take a look at [.eslintrc](.esl
 The eventual goal is to leverage the declarative features of ES6 (decorators, getters, etc.) to more concisely describe a service. To that effect, here are some ideas in the pipeline.
 
 * Handler introspection and enumeration of operations
-* Use a `RexExp` operation resolver and dispatch with extracted parameters
+* Use deep gets for operation and payload keys, see [_.get()](https://lodash.com/docs#get)
+* Dispatch endpoint methods with multiple arguments from the event
 * Make `@operation` more sophisticated and attach pre/post events (i.e. auth)
-* Hierarchical dispatching and chaining
-* Allow other endpoint types besides functions, for example:
+* Allow other endpoint types (like `Handler`), for example:
+
 ```javascript
 class UserHandler extends Handler {
 

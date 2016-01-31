@@ -1,11 +1,25 @@
 {
   "name": "lambda6",
-  "version": "1.1.0",
+  "version": "2.0.0-alpha",
   "description": "A simple AWS Lambda handler architecture for ES6",
+  "keywords": [
+    "aws",
+    "amazon",
+    "lambda",
+    "handler",
+    "es6"
+  ],
   "main": "index.js",
-  "repository": "https://github.com/nombers/lambda6",
-  "author": "Nombers, Inc.",
-  "license": "Apache-2.0",
+  "repository": "nombers/lambda6",
+  "bugs": "https://github.com/nombers/lambda6/issues",
+  "author": {
+    "name": "Matt Marshall",
+    "url": "https://github.com/mattmarshall"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.10.36"
+  },
   "dependencies": {
     "bluebird": "^3.1.5"
   },
@@ -20,15 +34,15 @@
     "babel-preset-stage-1": "^6.3.13",
     "chai": "^3.4.1",
     "del": "^2.2.0",
+    "esdoc-es7-plugin": "^0.0.3",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
     "gulp-esdoc": "^0.2.0",
     "gulp-eslint": "^1.1.1",
     "gulp-istanbul": "^0.10.3",
-    "gulp-jsx-coverage": "^0.3.7",
     "gulp-mocha": "^2.2.0",
-    "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^1.6.0",
+    "gulp-uglify": "^1.5.1",
     "isparta": "^4.0.0",
     "mocha": "^2.3.4",
     "run-sequence": "^1.1.5",
