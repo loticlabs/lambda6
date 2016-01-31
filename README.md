@@ -29,7 +29,7 @@ _see [.babelrc](#.babelrc) for precisely what ES6/7 features are used._
 * Promise-oriented using the venerable [Bluebird](https://github.com/petkaantonov/bluebird) library
 
 ## Documentation
-[JavaScript API docs](http://lambda6-docs.s3-website-us-east-1.amazonaws.com/index.html) are generated using [ESDoc](https://esdoc.org) during the build process. If any documentation is inaccurate or missing, please create an issue here on GitHub.
+[JavaScript API docs](http://lambda6-docs.s3-website-us-east-1.amazonaws.com/master) are generated using [ESDoc](https://esdoc.org) during the build process. If any documentation is inaccurate or missing, please create an issue here on GitHub.
 
 ### Getting Started
 The fastest way to get started is to use the [lambda6 Yeoman generator](https://github.com/nombers/generator-lambda6) to generate a new lambda6 project.
