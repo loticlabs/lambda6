@@ -7,7 +7,7 @@ addons:
     repo_token:
       secure: "g44OCFwZetQ/4CDzJKMgrhNGBff25Pop22NEpe1lD03Of8J9VuzJ+bY7LnQmXDhjEGsitUwUagStm1WpZIfI/oGYJOipScGt8YR76DpiotMfw/B6kEbnUGwFBm4UIhwMFDOrWSo11EL1C0r89XouMTZ/3UZ/rRP1PPRaUrMW01vm1EdFvBg5j4P67i9+nlfigiSEIxbwiZew5Uoil3urUqe7okg9bhHINMfKxSurMFi7zJdobyd63tiePkz4FTaxgxixoO2MMCv1YWx2cZgLf+B7tI8Gi6Yq4QyrAcimk7yTW4ruMHMgsyET40YrjgOOvto7z8O2CHE5MlFBUzVmY3q/hPzkdE2ujH8RT+5k9LJUB2F7kpU0lWycay+iog32keh/l6ftoHMFm5NIsPj0DKX/pg9VzvdNJGqaqhpfYBIHAwZQzj5g1x35pSXwaYmpPzHX2Z+2YgR+he7kaeXEaeeohRMvA1nprr/pCPis6DE7pG3SjDF3mXVQkND6BMSylYxAHeNdTijmAuaitEAhsoT8hIpyxxbcgAFEpecr3x3JeGXg2H9W5PlNuTMYsb2QhY8wc1UmtSKNfEnKXFymQJq9wa5MOTOk8XDV/DnVOaNGA/j49XdUuuaP/ZMhGYLL0AD/UR68KiEBYuHXUSLrT/ygR0tEsxVUYQTFxatzwR4="
 before_install:
-  - npm install -g gulp npm@'>=2.13.0' codeclimate-test-reporter
+  - npm install -g gulp npm@latest codeclimate-test-reporter
 script:
   - gulp && npm link && cd example && npm link lambda6 && npm install && gulp test
 after_success:
