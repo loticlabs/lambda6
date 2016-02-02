@@ -2,15 +2,17 @@
   "name": "lambda6Example",
   "version": "0.0.1",
   "description": "Sample service using lambda6, created by Yeoman and generator-lambda6",
+  "repository": "nombers/lambda6",
   "main": "index.js",
   "dependencies": {
-    "lambda6": "^1.1.0"
+    "lambda6": ">=2.0.0-alpha"
   },
   "devDependencies": {
     "babel": "^6.3.26",
     "babel-eslint": "^5.0.0-beta6",
     "babel-plugin-transform-class-properties": "^6.4.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-runtime": "^6.4.3",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-stage-1": "^6.3.13",
     "chai": "^3.4.1",

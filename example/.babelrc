@@ -1,5 +1,5 @@
 {
   "presets": ["es2015", "stage-1"],
-  "plugins": ["transform-class-properties", "transform-decorators-legacy"],
+  "plugins": ["transform-decorators-legacy", "transform-runtime"],
   "sourceMap": "both"
 }
