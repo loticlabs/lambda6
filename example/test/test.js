@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 
 // Import handler function to test
-import { handler } from '../src';
+import { handler } from '../src/index';
 
 // Create unit tests for your handler to respond to different events
 describe('handler', () => {

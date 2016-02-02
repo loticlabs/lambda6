@@ -14,9 +14,6 @@ import runSequence from 'run-sequence';
 import * as isparta from 'isparta';
 import del from 'del';
 
-// Lambda config data
-import lambdaConfig from './lambda';
-
 // Clean task
 gulp.task('clean', () => {
   return del(['lambda.zip', 'dist', 'docs', 'coverage']);
@@ -73,6 +70,8 @@ gulp.task('bundle', ['lint', 'test', 'babel', 'npm'], () => {
 
 // Lambda Task
 gulp.task('lambda', ['bundle'], () => {
+  // Will throw error if lambda.json not found
+  const lambdaConfig = require('./lambda');
   return gulp.src('./lambda.zip')
     .pipe(lambda(lambdaConfig))
     .pipe(gulp.dest('.'));

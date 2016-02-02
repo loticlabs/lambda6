@@ -12,9 +12,7 @@ addons:
 before_install:
   - npm install -g gulp codeclimate-test-reporter
 script:
-  - gulp
-  - npm link
-  - cd example && npm install && gulp test
+  - gulp && npm link && cd example && npm link lambda6 && npm install && gulp test
 after_success:
   - gulp docs
 after_script:
