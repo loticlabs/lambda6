@@ -26,6 +26,7 @@ function checkType(obj, name, types) {
   if (isUndefinedOrNull(obj)) {
     throw new TypeError(`invalid type for ${name}, cannot be ${obj}`);
   }
+  /* istanbul ignore next */
   let theType = typeof obj;
   // Currently only functions are allowed as endpoints
   if (types.indexOf(theType) < 0) { //eslint-disable-line no-magic-numbers

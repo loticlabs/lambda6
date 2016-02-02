@@ -46,7 +46,7 @@ describe('Handler', () => {
       handler.createInvocationContext.bind(handler).should.not.throw;
       handler.createInvocationContext.bind(handler, null).should.not.throw;
       handler.createInvocationContext.bind(handler, {}).should.not.throw;
-      handler.createInvocationContext.bind(handler, 1).should.throw(TypeError);
+      handler.createInvocationContext.bind(handler, 1).should.throw(TypeError, 'thisArgs must be an object');
     });
     describe('options.deepCopy = falsey', () => {
       /** @test {Handler#createInvocationContext} */
