@@ -31,6 +31,7 @@ deploy:
       repo: nombers/lambda6
       all_branches: true
       condition: $TRAVIS_PULL_REQUEST == "false"
+      node: "4.1"
   - provider: npm
     email: mmarshall@nombers.io
     api_key:
@@ -39,3 +40,4 @@ deploy:
       repo: nombers/lambda6
       tags: true
       branch: master
+      node: "4.1"
