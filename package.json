@@ -57,5 +57,8 @@
     "mocha": "^2.3.4",
     "run-sequence": "^1.1.5",
     "sinon": "^1.17.3"
+  },
+  "scripts": {
+    "test": "gulp test"
   }
 }

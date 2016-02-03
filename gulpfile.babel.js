@@ -12,6 +12,8 @@ import runSequence from 'run-sequence';
 import istanbul from 'gulp-istanbul';
 import * as isparta from 'isparta';
 import del from 'del';
+import { spawn } from 'child_process';
+import { join } from 'path';
 
 // Clean task
 gulp.task('clean', () => {
@@ -54,6 +56,34 @@ gulp.task('test', ['lint', '--pre-test-hook'], () => {
     .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }));
 });
 
+// Process options for example project
+const procOps = {
+  cwd: join(__dirname, 'example'),
+  stdio: 'inherit'
+};
+
+gulp.task('link', done => {
+  spawn('npm', ['link'], { stdio: 'inherit' }, done);
+});
+
+// 1. Example project link
+gulp.task('test:example:link', done => {
+  spawn('npm', ['link', 'lambda6'], procOps, done);
+});
+
+// 2. Example project install
+gulp.task('test:example:install', done => {
+  spawn('npm', ['install'], procOps, done);
+});
+
+// 2. Example project install
+gulp.task('test:example:test', done => {
+  spawn('gulp', ['test'], procOps, done);
+});
+
+// Test example
+gulp.task('test:example', ['link', 'test:example:link', 'test:example:install', 'test:example:test']);
+
 // Docs Task
 gulp.task('docs', () => {
   return gulp.src('./src')
@@ -67,5 +97,5 @@ gulp.task('watch', function() {
 
 // Default Task
 gulp.task('default', (callback) => {
-  return runSequence(['clean', 'test'], ['babel']);
+  return runSequence('clean', 'test', 'babel', 'test:example');
 });

@@ -10,7 +10,7 @@ before_install:
   - npm update npm -g
   - npm install -g gulp codeclimate-test-reporter
 script:
-  - gulp && npm link && cd example && npm link lambda6 && npm install && gulp test
+  - gulp
 after_success:
   - gulp docs
 after_script:
