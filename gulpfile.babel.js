@@ -81,7 +81,7 @@ gulp.task('test:example', done => {
   const npmInstall = () => _spawn('npm', ['install'], procOps);
   const gulpTest = () => _spawn('gulp', ['test'], procOps);
   // Run the series of promises
-  linkNpmPart1().then(linkNpmPart2).then(gulpTest).then(() => done()).catch(done);
+  linkNpmPart1().then(linkNpmPart2).then(npmInstall).then(gulpTest).then(() => done()).catch(done);
 });
 
 // Docs Task
