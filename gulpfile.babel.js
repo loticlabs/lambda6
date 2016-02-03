@@ -14,6 +14,7 @@ import * as isparta from 'isparta';
 import del from 'del';
 import { spawn } from 'child_process';
 import { join } from 'path';
+import Promise from 'bluebird';
 
 // Clean task
 gulp.task('clean', () => {
@@ -56,33 +57,32 @@ gulp.task('test', ['lint', '--pre-test-hook'], () => {
     .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }));
 });
 
-// Process options for example project
-const procOps = {
-  cwd: join(__dirname, 'example'),
-  stdio: 'inherit'
-};
-
-gulp.task('link', done => {
-  spawn('npm', ['link'], { stdio: 'inherit' }, done);
-});
-
-// 1. Example project link
-gulp.task('test:example:link', done => {
-  spawn('npm', ['link', 'lambda6'], procOps, done);
-});
-
-// 2. Example project install
-gulp.task('test:example:install', done => {
-  spawn('npm', ['install'], procOps, done);
-});
-
-// 2. Example project install
-gulp.task('test:example:test', done => {
-  spawn('gulp', ['test'], procOps, done);
-});
-
 // Test example
-gulp.task('test:example', ['link', 'test:example:link', 'test:example:install', 'test:example:test']);
+gulp.task('test:example', done => {
+  // Process options for example project
+  const procOps = {
+    cwd: join(__dirname, 'example'),
+    stdio: 'inherit'
+  };
+  function _spawn(...args) {
+    return new Promise((resolve, reject) => {
+      const proc = spawn(...args);
+      proc.on('exit', (code, signal) => {
+        if (code !== 0) {
+          reject(`code: ${code}, signal: ${signal}`);
+        }
+        resolve();
+      });
+      proc.on('error', reject);
+    });
+  }
+  const linkNpmPart1 = () => _spawn('npm', ['link'], { stdio: 'inherit' });
+  const linkNpmPart2 = () => _spawn('npm', ['link', 'lambda6'], procOps);
+  const npmInstall = () => _spawn('npm', ['install'], procOps);
+  const gulpTest = () => _spawn('gulp', ['test'], procOps);
+  // Run the series of promises
+  linkNpmPart1().then(linkNpmPart2).then(gulpTest).then(() => done()).catch(done);
+});
 
 // Docs Task
 gulp.task('docs', () => {
