@@ -17,6 +17,13 @@
     "url": "https://github.com/mattmarshall"
   },
   "license": "MIT",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "index.js",
+    "lib/"
+  ],
   "engines": {
     "node": ">=0.10.36"
   },
