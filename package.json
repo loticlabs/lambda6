@@ -1,13 +1,14 @@
 {
   "name": "lambda6",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-beta",
   "description": "A simple AWS Lambda handler architecture for ES6",
   "keywords": [
     "aws",
     "amazon",
-    "lambda",
+    "bluebird",
+    "es6",
     "handler",
-    "es6"
+    "lambda"
   ],
   "main": "index.js",
   "repository": "nombers/lambda6",
