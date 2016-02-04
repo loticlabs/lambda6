@@ -1,3 +1,4 @@
+import 'source-map-support/register';
 import Promise from 'bluebird';
 
 /** @external {Promise} http://bluebirdjs.com/docs/api-reference.html */

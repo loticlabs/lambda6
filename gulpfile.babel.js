@@ -7,6 +7,7 @@ import mocha from 'gulp-mocha';
 import esdoc from 'gulp-esdoc';
 import eslint from 'gulp-eslint';
 import uglify from 'gulp-uglify';
+import sourcemaps from 'gulp-sourcemaps';
 import babelCore from 'babel-core/register';
 import runSequence from 'run-sequence';
 import istanbul from 'gulp-istanbul';
@@ -32,8 +33,10 @@ gulp.task('lint', function () {
 // Babel Task
 gulp.task('babel', () => {
   return gulp.src('./src/**/*.js')
+    .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(uglify())
+    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('lib'));
 });
 
