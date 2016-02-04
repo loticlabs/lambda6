@@ -4,7 +4,7 @@
 [![Test Coverage](https://codeclimate.com/github/nombers/lambda6/badges/coverage.svg)](https://codeclimate.com/github/nombers/lambda6/coverage)
 [![npm version](https://badge.fury.io/js/lambda6.svg)](https://badge.fury.io/js/lambda6)
 
-A simple ES6/7 handler architecture for AWS Lambda with opinionated defaults. The base class, `Handler` can be subclassed to provide a structured framework for handling AWS Lambda events. `Handler` matches an event `operationKey` to a method name by default, and extracts an argument for that method from the event using the `payloadKey`. Both of these keys can be changed by passing in an options hash to the constructor.
+A simple ES6+ handler architecture for AWS Lambda with opinionated defaults. The base class, `Handler` can be subclassed to provide a structured framework for handling AWS Lambda events. `Handler` matches an event `operationKey` to a method name by default, and extracts an argument for that method from the event using the `payloadKey`. Both of these keys can be changed by passing in an options hash to the constructor.
 
 _see [.babelrc](#.babelrc) for precisely what ES6/7 features are used._
 
@@ -23,8 +23,8 @@ _see [.babelrc](#.babelrc) for precisely what ES6/7 features are used._
 `npm install --save lambda6`
 
 ## Design Goals
-* 100% ES6/7*, albeit transpiled by [Babel](https://babeljs.io/)
-* Limited or no [dependencies](#dependencies) (small code base)
+* ES6+ transpiled by [Babel](https://babeljs.io/)
+* Limited [dependencies](#dependencies)
 * Easy dispatching of events based on event structure, with sane defaults
 * Minimalist and intuitive request lifecycle
 * Promise-oriented using the venerable [Bluebird](https://github.com/petkaantonov/bluebird) library
@@ -101,7 +101,14 @@ export function handler(event, context) {
 ```
 
 ### Dependencies
-lambda6 has only one runtime dependency: [Bluebird](https://github.com/petkaantonov/bluebird). Other than that, an ES5 runtime is required. This keeps the code base compact, leading to faster provisioning times in AWS Lambda.
+lambda6 has a few runtime dependencies, most of which provide an ES6+ environment in AWS Lambda. They are:
+
+* [babel-polyfill](https://babeljs.io/docs/usage/polyfill/)
+* [babel-runtime](https://www.npmjs.com/package/babel-runtime)
+* [source-map-support](https://github.com/evanw/node-source-map-support)
+* [Bluebird](https://github.com/petkaantonov/bluebird)
+
+This appears to be the minimal set of dependencies to allow ES6 code to run well in AWS Lambda.
 
 ## Building
 This project uses [gulp](https://gulpjs.com) to perform the necessary build steps. The default build step (which transpiles the ES6 code to `lib`) can be invoked like so:
